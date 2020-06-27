@@ -7,7 +7,7 @@ from jax.tree_util import tree_flatten, tree_unflatten, register_pytree_node_cla
 from collections import namedtuple
 
 #  from .sum_tree import SumTree
-from sum_tree.SumTree import SumTreef as SumTree
+from sum_tree import SumTreef as SumTree
 from .experience_buffer import ExperienceBuffer
 
 class PriorityBuffer(ExperienceBuffer):
@@ -33,20 +33,20 @@ class PriorityBuffer(ExperienceBuffer):
         super(PriorityBuffer, self).add_transitions(
             observation_tm1, action_tm1, reward_t, observation_t, legal_moves_t, terminal_t)
 
-    def sample_batch(self, batch_size, beta):
+    def sample_batch(self, batch_size):
         keys = onp.linspace(1. / batch_size, 1, batch_size)
         #  keys = keys * jax.random.uniform(next(self.rng), shape=(batch_size,), dtype=onp.float32) / batch_size / 2
 
         keys -= onp.random.uniform(size=(batch_size,), high=1./batch_size)
         indices = self.sum_tree.get_indices(keys)
-        prios = (onp.array(self.sum_tree.get_values(indices)) + 1e-6) / self.sum_tree.get_total_val()
-        p_min = self.min_priority / self.sum_tree.get_total_val()
-        max_weight = (p_min * self.size) ** (-beta)
-        weights_is = (prios * self.size) ** (-beta) / max_weight
-        return indices, weights_is, self[indices]
+        prios = (onp.array(self.sum_tree.get_values(indices)) + 1e-10) / self.sum_tree.get_total_val()
+        #  p_min = self.min_priority / self.sum_tree.get_total_val()
+        #  max_weight = (p_min * self.size) ** (-beta)
+        #  weights_is = ((prios * self.size) ** (-beta)) / max_weight
+        return indices, prios, self[indices]
 
     def update_priorities(self, indices, priorities):
-        onp.power(priorities, self.alpha)
+        priorities = (priorities + 1e-10) ** self.alpha
         self.max_priority = max(self.max_priority, onp.max(priorities))
         self.min_priority = min(self.min_priority, onp.min(priorities))
         self.sum_tree.update_values(indices, priorities)

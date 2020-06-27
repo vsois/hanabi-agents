@@ -22,6 +22,6 @@ void register_sumtree(py::module& m, const char* name) {
          });
 }
 
-PYBIND11_MODULE(SumTree, m) {
+PYBIND11_MODULE(sum_tree, m) {
   register_sumtree<float>(m, "SumTreef");
 }
