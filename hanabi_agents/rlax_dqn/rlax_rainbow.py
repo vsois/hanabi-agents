@@ -222,6 +222,12 @@ class DQNAgent:
             action_spec,
             params: RlaxRainbowParams = RlaxRainbowParams()):
 
+        if not callable(params.epsilon):
+            eps = params.epsilon
+            params = params._replace(epsilon=lambda ts: eps)
+        if not callable(params.beta_is):
+            beta = params.beta_is
+            params = params._replace(beta_is=lambda ts: beta)
         self.params = params
         self.rng = hk.PRNGSequence(jax.random.PRNGKey(params.seed))
 
