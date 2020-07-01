@@ -2,8 +2,10 @@
 This file implements a DQNAgent.
 """
 import collections
+import pickle
 from functools import partial
 from typing import Tuple, List
+from os.path import join as join_path
 
 import numpy as onp
 
@@ -306,15 +308,7 @@ class DQNAgent:
         self.last_obs[not_first_steps] = observations[not_first_steps]
 
     def update(self):
-        """Train the agent.
-
-        Args:
-            observations_tm1 -- observations at t-1.
-            actions_tm1      -- actions at t-1.
-            observations_t   -- observations at t.
-            legal_moves_t    -- actions at t.
-            rewards_t        -- rewards at t.
-            terminal_t       -- terminal state at t?
+        """Make one training step.
         """
 
         if self.params.use_priority:
@@ -346,3 +340,18 @@ class DQNAgent:
 
     def __repr__(self):
         return f"<rlax_dqn.DQNAgent(params={self.params})>"
+
+    def save_weights(self, path, fname_part):
+        """Save online and target network weights to the specified path"""
+
+        # TODO save weights using something other than pickle (e.g. numpy + protobuf)
+        #  flat_params, tree_def = jax.tree_util.tree_flatten(self.online_params)
+        #  print(flat_params, tree_def)
+        #  onp.save(join_path(path, "rlax_rainbow_" + fname_part + "_" + str(self.train_steps) + "_online.npy"),
+        #           self.online_params)
+        #  onp.save(join_path(path, "rlax_rainbow_" + fname_part + "_" + str(self.train_steps) + "_target.npy"),
+        #           self.trg_params)
+        with open(join_path(path, "rlax_rainbow_" + fname_part + "_" + str(self.train_steps) + "_online.npy"), 'wb') as of:
+            pickle.dump(self.online_params, of)
+        with open(join_path(path, "rlax_rainbow_" + fname_part + "_" + str(self.train_steps) + "_target.npy"), 'wb') as of:
+            pickle.dump(self.trg_params, of)
