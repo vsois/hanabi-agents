@@ -256,7 +256,7 @@ class DQNAgent:
         # Build and initialize optimizer.
         self.optimizer = optix.adam(params.learning_rate, eps=3.125e-5)
         self.opt_state = self.optimizer.init(self.online_params)
-        self.train_steps = 0
+        self.train_step = 0
         self.update_q = DQNLearning.update_q
 
         if params.use_priority:
@@ -285,7 +285,7 @@ class DQNAgent:
         observations, legal_actions = observations[1]
         _, actions = DQNPolicy.policy(
             self.network, self.atoms, self.online_params,
-            self.params.epsilon(self.train_steps), next(self.rng),
+            self.params.epsilon(self.train_step), next(self.rng),
             observations, legal_actions)
         return jax.tree_util.tree_map(onp.array, actions)
 
@@ -328,15 +328,15 @@ class DQNAgent:
             transitions,
             self.params.discount,
             prios,
-            self.params.beta_is(self.train_steps))
+            self.params.beta_is(self.train_step))
 
         if self.params.use_priority:
             self.experience.update_priorities(sample_indices, onp.abs(tds))
 
-        if self.train_steps % self.params.target_update_period == 0:
+        if self.train_step % self.params.target_update_period == 0:
             self.trg_params = self.online_params
 
-        self.train_steps += 1
+        self.train_step += 1
 
     def __repr__(self):
         return f"<rlax_dqn.DQNAgent(params={self.params})>"
@@ -347,11 +347,19 @@ class DQNAgent:
         # TODO save weights using something other than pickle (e.g. numpy + protobuf)
         #  flat_params, tree_def = jax.tree_util.tree_flatten(self.online_params)
         #  print(flat_params, tree_def)
-        #  onp.save(join_path(path, "rlax_rainbow_" + fname_part + "_" + str(self.train_steps) + "_online.npy"),
+        #  onp.save(join_path(path, "rlax_rainbow_" + fname_part + "_" + str(self.train_step) + "_online.npy"),
         #           self.online_params)
-        #  onp.save(join_path(path, "rlax_rainbow_" + fname_part + "_" + str(self.train_steps) + "_target.npy"),
+        #  onp.save(join_path(path, "rlax_rainbow_" + fname_part + "_" + str(self.train_step) + "_target.npy"),
         #           self.trg_params)
-        with open(join_path(path, "rlax_rainbow_" + fname_part + "_" + str(self.train_steps) + "_online.npy"), 'wb') as of:
+        with open(join_path(path, "rlax_rainbow_" + fname_part + "_online.pkl"), 'wb') as of:
             pickle.dump(self.online_params, of)
-        with open(join_path(path, "rlax_rainbow_" + fname_part + "_" + str(self.train_steps) + "_target.npy"), 'wb') as of:
+        with open(join_path(path, "rlax_rainbow_" + fname_part + "_target.pkl"), 'wb') as of:
             pickle.dump(self.trg_params, of)
+
+    def restore_weights(self, online_weights_file, trg_weights_file):
+        """Restore online and target network weights from the specified files"""
+
+        with open(online_weights_file, 'rb') as iwf:
+            self.online_params = pickle.load(iwf)
+        with open(trg_weights_file, 'rb') as iwf:
+            self.trg_params = pickle.load(iwf)
