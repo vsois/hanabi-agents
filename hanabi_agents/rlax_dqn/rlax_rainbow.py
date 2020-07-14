@@ -110,7 +110,7 @@ class DQNPolicy:
             lm         -- one-hot encoded legal actions
         """
         # compute logits
-        logits = network.apply(net_params, obs)
+        logits = network.apply(net_params, None, obs)
         # set logits for illegal actions to negative infinity
         #  tiled_lms = jnp.broadcast_to(lms[:, :, onp.newaxis], logits.shape)
         #  logits = jnp.where(tiled_lms, logits, -jnp.inf)
@@ -140,7 +140,7 @@ class DQNPolicy:
             lm         -- one-hot encoded legal actions
         """
         # compute logits and convert those to q_vals
-        logits = network.apply(net_params, obs)
+        logits = network.apply(net_params, None, obs)
         probs = jax.nn.softmax(logits, axis=-1)
         q_vals = jnp.mean(probs * atoms, axis=-1)
 
@@ -170,9 +170,9 @@ class DQNLearning:
 
 
         def categorical_double_q_td(online_params, trg_params, obs_tm1, a_tm1, r_t, obs_t, lm_t, term_t, discount_t):
-            q_logits_tm1 = network.apply(online_params, obs_tm1)
-            q_logits_t = network.apply(trg_params, obs_t)
-            q_logits_sel = network.apply(online_params, obs_t)
+            q_logits_tm1 = network.apply(online_params, None, obs_tm1)
+            q_logits_t = network.apply(trg_params, None, obs_t)
+            q_logits_sel = network.apply(online_params, None, obs_t)
             q_sel = jnp.mean(jax.nn.softmax(q_logits_sel, axis=-1) * atoms, axis=-1)
             # set q values of illegal actions to a large negative number.
             #  q_sel = jnp.where(lm_t, q_sel, -1e2)
