@@ -1,5 +1,6 @@
 from .ruleset import Ruleset
 from hanabi_learning_environment import pyhanabi_pybind as pyhanabi
+import timeit
 
 
 class RulebasedAgent():
@@ -27,6 +28,22 @@ class RulebasedAgent():
     def explore(self, observations):
         actions = pyhanabi.HanabiMoveVector()
         for observation in observations:
+            print(observation)
+            
+            c1 = pyhanabi.HanabiCard(pyhanabi.HanabiCard.ColorType.kBlue,
+                                     pyhanabi.HanabiCard.RankType.k1)
+            c2 = pyhanabi.HanabiCard(pyhanabi.HanabiCard.ColorType.kRed,
+                                     pyhanabi.HanabiCard.RankType.k3)
+            c3 = pyhanabi.HanabiCard(pyhanabi.HanabiCard.ColorType.kBlue,
+                                     pyhanabi.HanabiCard.RankType.k4)
+            c4 = pyhanabi.HanabiCard(pyhanabi.HanabiCard.ColorType.kGreen,
+                                     pyhanabi.HanabiCard.RankType.k2)
+            c5 = pyhanabi.HanabiCard(pyhanabi.HanabiCard.ColorType.kGreen,
+                                     pyhanabi.HanabiCard.RankType.k5)
+            hand = [c1, c2, c3, c4, c5]
+            
+            print(observation.hand_possible(hand))
+            print(timeit.timeit(lambda: observation.hand_possible(hand), number=1000))
             actions.append(self.get_move(observation))
         return actions
 
