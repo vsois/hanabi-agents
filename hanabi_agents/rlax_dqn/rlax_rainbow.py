@@ -110,7 +110,7 @@ class DQNPolicy:
             lm         -- one-hot encoded legal actions
         """
         # compute logits
-        logits = network.apply(net_params, None, obs)
+        logits = network.apply(net_params, obs)
         # set logits for illegal actions to negative infinity
         #  tiled_lms = jnp.broadcast_to(lms[:, :, onp.newaxis], logits.shape)
         #  logits = jnp.where(tiled_lms, logits, -jnp.inf)
@@ -140,7 +140,7 @@ class DQNPolicy:
             lm         -- one-hot encoded legal actions
         """
         # compute logits and convert those to q_vals
-        logits = network.apply(net_params, None, obs)
+        logits = network.apply(net_params, obs)
         probs = jax.nn.softmax(logits, axis=-1)
         q_vals = jnp.mean(probs * atoms, axis=-1)
 
@@ -170,9 +170,9 @@ class DQNLearning:
 
 
         def categorical_double_q_td(online_params, trg_params, obs_tm1, a_tm1, r_t, obs_t, lm_t, term_t, discount_t):
-            q_logits_tm1 = network.apply(online_params, None, obs_tm1)
-            q_logits_t = network.apply(trg_params, None, obs_t)
-            q_logits_sel = network.apply(online_params, None, obs_t)
+            q_logits_tm1 = network.apply(online_params, obs_tm1)
+            q_logits_t = network.apply(trg_params, obs_t)
+            q_logits_sel = network.apply(online_params, obs_t)
             q_sel = jnp.mean(jax.nn.softmax(q_logits_sel, axis=-1) * atoms, axis=-1)
             # set q values of illegal actions to a large negative number.
             #  q_sel = jnp.where(lm_t, q_sel, -1e2)
@@ -222,7 +222,8 @@ class DQNAgent:
             self,
             observation_spec,
             action_spec,
-            params: RlaxRainbowParams = RlaxRainbowParams()):
+            params: RlaxRainbowParams = RlaxRainbowParams(),
+            reward_shaper = None):
 
         if not callable(params.epsilon):
             eps = params.epsilon
@@ -231,6 +232,7 @@ class DQNAgent:
             beta = params.beta_is
             params = params._replace(beta_is=lambda ts: beta)
         self.params = params
+        self.reward_shaper = reward_shaper
         self.rng = hk.PRNGSequence(jax.random.PRNGKey(params.seed))
 
         # Build and initialize Q-network.
@@ -306,6 +308,12 @@ class DQNAgent:
             legal_actions[not_first_steps],
             (step_types[not_first_steps] == 2).reshape((-1, 1)))
         self.last_obs[not_first_steps] = observations[not_first_steps]
+        
+    def shape_rewards(self, observations, moves):
+        
+        if self.reward_shaper is not None:
+            return onp.array(self.reward_shaper.shape(observations[0], moves))
+        return 0
 
     def update(self):
         """Make one training step.

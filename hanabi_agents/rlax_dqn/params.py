@@ -18,3 +18,10 @@ class RlaxRainbowParams(NamedTuple):
     n_atoms: int = 51
     atom_vmax: int = 25
     beta_is: Union[Callable[[int], float], float] = lambda x: 0.4
+    
+@gin.configurable
+class RewardShapingParams(NamedTuple):
+    
+    # conservative agent
+    min_play_probability: float = 0.8
+    w_play_probability: float = -3.0
