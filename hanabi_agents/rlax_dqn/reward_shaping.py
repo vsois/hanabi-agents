@@ -2,7 +2,6 @@
 from .params import RewardShapingParams
 import numpy as np
 from hanabi_learning_environment import pyhanabi_pybind as pyhanabi
-from pyflakes.checker import counter
 
 # reward shaping class
 class RewardShaper:

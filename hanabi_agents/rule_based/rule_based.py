@@ -16,7 +16,6 @@ class RulebasedAgent():
             for index, rule in enumerate(self.rules):
                 action = rule(observation)
                 if action is not None:
-                    # print(rule)
                     self.histogram[index] += 1
                     self.totalCalls += 1
                     return action
@@ -28,38 +27,26 @@ class RulebasedAgent():
     def explore(self, observations):
         actions = pyhanabi.HanabiMoveVector()
         for observation in observations:
-            print(observation)
-            
-            c1 = pyhanabi.HanabiCard(pyhanabi.HanabiCard.ColorType.kBlue,
-                                     pyhanabi.HanabiCard.RankType.k1)
-            c2 = pyhanabi.HanabiCard(pyhanabi.HanabiCard.ColorType.kRed,
-                                     pyhanabi.HanabiCard.RankType.k3)
-            c3 = pyhanabi.HanabiCard(pyhanabi.HanabiCard.ColorType.kBlue,
-                                     pyhanabi.HanabiCard.RankType.k4)
-            c4 = pyhanabi.HanabiCard(pyhanabi.HanabiCard.ColorType.kGreen,
-                                     pyhanabi.HanabiCard.RankType.k2)
-            c5 = pyhanabi.HanabiCard(pyhanabi.HanabiCard.ColorType.kGreen,
-                                     pyhanabi.HanabiCard.RankType.k5)
-            hand = [c1, c2, c3, c4, c5]
-            
-            print(observation.hand_possible(hand))
-            print(timeit.timeit(lambda: observation.hand_possible(hand), number=1000))
             actions.append(self.get_move(observation))
         return actions
 
     def exploit(self, observations):
         return self.explore(observations)
 
-
     def requires_vectorized_observation(self):
         return False
-
 
     def add_experience_first(self, o,  st):
         pass
 
-    def add_experience(self, o, a, r, st):
+    def add_experience(self, otm1, atm1, rt, ot, tt):
         pass
 
     def update(self):
         pass
+    
+    def shape_rewards(self, observations, moves):
+        return 0
+    
+    def create_stacker(self, obs_len, n_states):
+        return None

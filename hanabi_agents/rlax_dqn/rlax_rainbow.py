@@ -20,12 +20,11 @@ from .experience_buffer import ExperienceBuffer
 from .priority_buffer import PriorityBuffer
 from .noisy_mlp import NoisyMLP
 from .params import RlaxRainbowParams
+from .vectorized_stacker import VectorizedObservationStacker
 
 
 DiscreteDistribution = collections.namedtuple(
     "DiscreteDistribution", ["sample", "probs", "logprob", "entropy"])
-
-
 
 
 class DQNPolicy:
@@ -111,7 +110,7 @@ class DQNPolicy:
             lm         -- one-hot encoded legal actions
         """
         # compute logits
-        logits = network.apply(net_params, obs)
+        logits = network.apply(net_params, None, obs)
         # set logits for illegal actions to negative infinity
         #  tiled_lms = jnp.broadcast_to(lms[:, :, onp.newaxis], logits.shape)
         #  logits = jnp.where(tiled_lms, logits, -jnp.inf)
@@ -141,7 +140,7 @@ class DQNPolicy:
             lm         -- one-hot encoded legal actions
         """
         # compute logits and convert those to q_vals
-        logits = network.apply(net_params, obs)
+        logits = network.apply(net_params, None, obs)
         probs = jax.nn.softmax(logits, axis=-1)
         q_vals = jnp.mean(probs * atoms, axis=-1)
 
@@ -169,19 +168,23 @@ class DQNLearning:
             term_t     -- terminal state at time t?
         """
 
-
         def categorical_double_q_td(online_params, trg_params, obs_tm1, a_tm1, r_t, obs_t, lm_t, term_t, discount_t):
-            q_logits_tm1 = network.apply(online_params, obs_tm1)
-            q_logits_t = network.apply(trg_params, obs_t)
-            q_logits_sel = network.apply(online_params, obs_t)
+            q_logits_tm1 = network.apply(online_params, None, obs_tm1)
+            q_logits_t = network.apply(trg_params, None, obs_t)
+            q_logits_sel = network.apply(online_params, None, obs_t)
             q_sel = jnp.mean(jax.nn.softmax(q_logits_sel, axis=-1) * atoms, axis=-1)
             # set q values of illegal actions to a large negative number.
             #  q_sel = jnp.where(lm_t, q_sel, -1e2)
             #  q_t = jnp.where(lm_t, q_t, -1e3)
             # set q values to zero if the state is terminal, i.e.
             #  q_t = jnp.where(jnp.broadcast_to(term_t, q_t.shape), 0.0, q_t)
+            
+            # set discount to zero if state terminal
+            term_t = term_t.reshape(r_t.shape)
+            discount_t = jnp.where(term_t, 0, discount_t)
+
             batch_error = jax.vmap(rlax.categorical_double_q_learning,
-                                   in_axes=(None, 0, 0, 0, None, None, 0, 0,))
+                                   in_axes=(None, 0, 0, 0, 0, None, 0, 0,))
             td_errors = batch_error(atoms[0], q_logits_tm1, a_tm1, r_t, discount_t, atoms[0], q_logits_t, q_sel)
             return td_errors
 
@@ -251,7 +254,8 @@ class DQNAgent:
         self.network = build_network(params.layers,
                                      (action_spec.num_values, params.n_atoms))
         self.trg_params = self.network.init(
-            next(self.rng), observation_spec.generate_value().astype(onp.float16))
+            next(self.rng), 
+            onp.zeros((observation_spec.shape[0], observation_spec.shape[1] * self.params.history_size), dtype = onp.float16))
         self.online_params = self.trg_params
         self.atoms = jnp.tile(jnp.linspace(-params.atom_vmax, params.atom_vmax, params.n_atoms),
                               (action_spec.num_values, 1))
@@ -267,7 +271,8 @@ class DQNAgent:
                 observation_spec.shape[1],
                 action_spec.num_values,
                 1,
-                params.experience_buffer_size)
+                params.experience_buffer_size,
+                alpha=self.params.priority_w)
         else:
             self.experience = ExperienceBuffer(
                 observation_spec.shape[1],
@@ -293,22 +298,21 @@ class DQNAgent:
         return jax.tree_util.tree_map(onp.array, actions)
 
     def add_experience_first(self, observations, step_types):
-        observations, _ = observations[1]
-        first_steps = step_types == 0
-        self.last_obs[first_steps] = observations[first_steps]
+        pass
 
-    def add_experience(self, observations, actions, rewards, step_types):
-        observations, legal_actions = observations[1]
+    def add_experience(self, observations_tm1, actions_tm1, rewards_t, observations_t, term_t):
 
-        not_first_steps = step_types != 0
+        obs_vec_tm1 = observations_tm1[1][0]
+        obs_vec_t = observations_t[1][0]
+        legal_actions_t = observations_t[1][1]
+
         self.experience.add_transitions(
-            self.last_obs[not_first_steps],
-            actions[not_first_steps].reshape((-1, 1)),
-            rewards[not_first_steps].reshape((-1, 1)),
-            observations[not_first_steps],
-            legal_actions[not_first_steps],
-            (step_types[not_first_steps] == 2).reshape((-1, 1)))
-        self.last_obs[not_first_steps] = observations[not_first_steps]
+            obs_vec_tm1,
+            actions_tm1,
+            rewards_t,
+            obs_vec_t,
+            legal_actions_t,
+            term_t)
         
     def shape_rewards(self, observations, moves):
         
@@ -346,6 +350,11 @@ class DQNAgent:
             self.trg_params = self.online_params
 
         self.train_step += 1
+        
+    def create_stacker(self, obs_len, n_states):
+        return VectorizedObservationStacker(self.params.history_size, 
+                                            obs_len,
+                                            n_states)
 
     def __repr__(self):
         return f"<rlax_dqn.DQNAgent(params={self.params})>"
