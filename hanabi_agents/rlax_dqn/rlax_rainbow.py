@@ -143,11 +143,10 @@ class DQNPolicy:
         logits = network.apply(net_params, None, obs)
         probs = jax.nn.softmax(logits, axis=-1)
         q_vals = jnp.mean(probs * atoms, axis=-1)
-
         q_vals = jnp.where(lms, q_vals, -jnp.inf)
 
         # compute actions
-        return rlax.greedy().sample(key, q_vals)
+        return rlax.greedy().sample(key, q_vals), logits
 
 class DQNLearning:
     @staticmethod
@@ -268,14 +267,14 @@ class DQNAgent:
 
         if params.use_priority:
             self.experience = PriorityBuffer(
-                observation_spec.shape[1],
+                observation_spec.shape[1] * self.params.history_size,
                 action_spec.num_values,
                 1,
                 params.experience_buffer_size,
                 alpha=self.params.priority_w)
         else:
             self.experience = ExperienceBuffer(
-                observation_spec.shape[1],
+                observation_spec.shape[1] * self.params.history_size,
                 action_spec.num_values,
                 1,
                 params.experience_buffer_size)
@@ -296,7 +295,7 @@ class DQNAgent:
             self.params.epsilon(self.train_step), next(self.rng),
             observations, legal_actions)
         return jax.tree_util.tree_map(onp.array, actions)
-
+    
     def add_experience_first(self, observations, step_types):
         pass
 
