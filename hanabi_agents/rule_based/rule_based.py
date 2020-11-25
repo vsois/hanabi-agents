@@ -1,5 +1,6 @@
 from .ruleset import Ruleset
 from hanabi_learning_environment import pyhanabi_pybind as pyhanabi
+import timeit
 
 
 class RulebasedAgent():
@@ -15,7 +16,6 @@ class RulebasedAgent():
             for index, rule in enumerate(self.rules):
                 action = rule(observation)
                 if action is not None:
-                    # print(rule)
                     self.histogram[index] += 1
                     self.totalCalls += 1
                     return action
@@ -33,16 +33,20 @@ class RulebasedAgent():
     def exploit(self, observations):
         return self.explore(observations)
 
-
     def requires_vectorized_observation(self):
         return False
-
 
     def add_experience_first(self, o,  st):
         pass
 
-    def add_experience(self, o, a, r, st):
+    def add_experience(self, otm1, atm1, rt, ot, tt):
         pass
 
     def update(self):
         pass
+    
+    def shape_rewards(self, observations, moves):
+        return 0
+    
+    def create_stacker(self, obs_len, n_states):
+        return None

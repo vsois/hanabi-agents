@@ -217,67 +217,67 @@ class Ruleset():
 
   #Note: this is not identical to the osawa rule implemented in the Fossgalaxy framework, as there the rule only takes into account explicitly known colors and ranks
   @staticmethod
-  def osawa_discard(observation):
-    if observation.information_tokens == 8:
-      return None
-    fireworks = observation.fireworks
-    max_fireworks = get_max_fireworks(observation)
-    safe_to_discard = False
-    for card_index, card in enumerate(observation.hands[0].knowledge):
-      #  color = card['color']
-      #  rank = card['rank']
-      if card.color is not None:
-        if fireworks[card.color] == 5:
-          return pyhanabi.HanabiMove(
-                  pyhanabi.HanabiMove.Type.kDiscard,
-                  card_index,
-                  0,
-                  pyhanabi.HanabiCard.ColorType.kUnknownColor,
-                  pyhanabi.HanabiCard.RankType.kUnknownRank
-                )
-          #  return{'action_type': 'DISCARD','card_index':card_index}
-      #  if (color is not None and rank is not None):
-      if (card.color_hinted() and card.rank_hinted()):
-        if (card.rank < fireworks[card.color] or card.rank >= max_fireworks[card.color]):
-          return pyhanabi.HanabiMove(
-                  pyhanabi.HanabiMove.Type.kDiscard,
-                  card_index,
-                  0,
-                  pyhanabi.HanabiCard.ColorType.kUnknownColor,
-                  pyhanabi.HanabiCard.RankType.kUnknownRank
-                )
-          #  return{'action_type': 'DISCARD','card_index':card_index}
-      if card.rank_hinted():
-        if card.rank < min(fireworks):
-          return pyhanabi.HanabiMove(
-                  pyhanabi.HanabiMove.Type.kDiscard,
-                  card_index,
-                  0,
-                  pyhanabi.HanabiCard.ColorType.kUnknownColor,
-                  pyhanabi.HanabiCard.RankType.kUnknownRank
-                )
-          #  return{'action_type': 'DISCARD','card_index':card_index}
-
-    for card_index in range(len(observation.hands[0])):
-      plausible_cards = get_plausible_cards(observation, 0, card_index)
-      eventually_playable = False
-      for card in plausible_cards:
-        #  color = colors[card.color]
-        #  rank = card.rank
-        # if (rank>=fireworks[color] and rank<max_fireworks[color]):
-        if (card.rank < max_fireworks[card.color]):
-          eventually_playable = True
-          break
-      if not eventually_playable:
-        return pyhanabi.HanabiMove(
-                pyhanabi.HanabiMove.Type.kDiscard,
-                card_index,
-                0,
-                pyhanabi.HanabiCard.ColorType.kUnknownColor,
-                pyhanabi.HanabiCard.RankType.kUnknownRank
-            )
-        #  return{'action_type': 'DISCARD','card_index':card_index}
-    return None
+#   def osawa_discard(observation):
+#     if observation.information_tokens == 8:
+#       return None
+#     fireworks = observation.fireworks
+#     max_fireworks = get_max_fireworks(observation)
+#     safe_to_discard = False
+#     for card_index, card in enumerate(observation.hands[0].knowledge):
+#       #  color = card['color']
+#       #  rank = card['rank']
+#       if card.color is not None:
+#         if fireworks[card.color] == 5:
+#           return pyhanabi.HanabiMove(
+#                   pyhanabi.HanabiMove.Type.kDiscard,
+#                   card_index,
+#                   0,
+#                   pyhanabi.HanabiCard.ColorType.kUnknownColor,
+#                   pyhanabi.HanabiCard.RankType.kUnknownRank
+#                 )
+#           #  return{'action_type': 'DISCARD','card_index':card_index}
+#       #  if (color is not None and rank is not None):
+#       if (card.color_hinted() and card.rank_hinted()):
+#         if (card.rank < fireworks[card.color] or card.rank >= max_fireworks[card.color]):
+#           return pyhanabi.HanabiMove(
+#                   pyhanabi.HanabiMove.Type.kDiscard,
+#                   card_index,
+#                   0,
+#                   pyhanabi.HanabiCard.ColorType.kUnknownColor,
+#                   pyhanabi.HanabiCard.RankType.kUnknownRank
+#                 )
+#           #  return{'action_type': 'DISCARD','card_index':card_index}
+#       if card.rank_hinted():
+#         if card.rank < min(fireworks):
+#           return pyhanabi.HanabiMove(
+#                   pyhanabi.HanabiMove.Type.kDiscard,
+#                   card_index,
+#                   0,
+#                   pyhanabi.HanabiCard.ColorType.kUnknownColor,
+#                   pyhanabi.HanabiCard.RankType.kUnknownRank
+#                 )
+#           #  return{'action_type': 'DISCARD','card_index':card_index}
+# 
+#     for card_index in range(len(observation.hands[0])):
+#       plausible_cards = get_plausible_cards(observation, 0, card_index)
+#       eventually_playable = False
+#       for card in plausible_cards:
+#         #  color = colors[card.color]
+#         #  rank = card.rank
+#         # if (rank>=fireworks[color] and rank<max_fireworks[color]):
+#         if (card.rank < max_fireworks[card.color]):
+#           eventually_playable = True
+#           break
+#       if not eventually_playable:
+#         return pyhanabi.HanabiMove(
+#                 pyhanabi.HanabiMove.Type.kDiscard,
+#                 card_index,
+#                 0,
+#                 pyhanabi.HanabiCard.ColorType.kUnknownColor,
+#                 pyhanabi.HanabiCard.RankType.kUnknownRank
+#             )
+#         #  return{'action_type': 'DISCARD','card_index':card_index}
+#     return None
 
 
   # Note: this rule only looks at the next player on purpose, for compatibility with the Fossgalaxy implementation. Prioritizes color
@@ -519,47 +519,47 @@ class Ruleset():
     return Ruleset.tell_playable_card_outer(observation)
 
   @staticmethod
-  def tell_anyone_useless_card(observation):
-    fireworks = observation['fireworks']
-    if observation['information_tokens']>1:
-      max_fireworks = get_max_fireworks(observation)
-      for player_offset in range(1, observation['num_players']):
-        player_hand = observation['observed_hands'][player_offset]
-        player_hints = observation['card_knowledge'][player_offset]
-        for card, hint in zip(player_hand, player_hints):
-          if useless_card(card,fireworks,max_fireworks):
-            if hint['color'] is None:
-              return {'action_type':'REVEAL_COLOR','color':card['color'],'target_offset':player_offset}
-            if hint['rank'] is None:
-              return {'action_type':'REVEAL_RANK','rank':card['rank'],'target_offset':player_offset}
-    return None
-
-  # Note: this follows the version of the rule that's used on VanDenBergh, which does not take into account whether or not they already know that information
-  @staticmethod
-  def tell_most_information(observation):
-    fireworks = observation['fireworks']
-    if observation['information_tokens']>1:
-      max_fireworks = get_max_fireworks(observation)
-      max_affected = -1
-      best_action = None
-      for player_offset in range(1, observation['num_players']):
-        player_hand = observation['observed_hands'][player_offset]
-        player_hints = observation['card_knowledge'][player_offset]
-        for card, hint in zip(player_hand, player_hints):
-          affected_colors = 0
-          affected_ranks = 0
-          for other_card in player_hand:
-            if card['color'] == other_card['color']:
-              affected_colors+=1
-            if card['rank']  == other_card['rank']:
-              affected_ranks+=1
-          if affected_colors > max_affected:
-            max_affected = affected_colors
-            best_action = {'action_type':'REVEAL_COLOR','color':card['color'],'target_offset':player_offset}
-          if affected_ranks > max_affected:
-            max_affected = affected_ranks
-            best_action = {'action_type':'REVEAL_RANK','rank':card['rank'],'target_offset':player_offset}
-    return None
+#   def tell_anyone_useless_card(observation):
+#     fireworks = observation['fireworks']
+#     if observation['information_tokens']>1:
+#       max_fireworks = get_max_fireworks(observation)
+#       for player_offset in range(1, observation['num_players']):
+#         player_hand = observation['observed_hands'][player_offset]
+#         player_hints = observation['card_knowledge'][player_offset]
+#         for card, hint in zip(player_hand, player_hints):
+#           if useless_card(card,fireworks,max_fireworks):
+#             if hint['color'] is None:
+#               return {'action_type':'REVEAL_COLOR','color':card['color'],'target_offset':player_offset}
+#             if hint['rank'] is None:
+#               return {'action_type':'REVEAL_RANK','rank':card['rank'],'target_offset':player_offset}
+#     return None
+# 
+#   # Note: this follows the version of the rule that's used on VanDenBergh, which does not take into account whether or not they already know that information
+#   @staticmethod
+#   def tell_most_information(observation):
+#     fireworks = observation['fireworks']
+#     if observation['information_tokens']>1:
+#       max_fireworks = get_max_fireworks(observation)
+#       max_affected = -1
+#       best_action = None
+#       for player_offset in range(1, observation['num_players']):
+#         player_hand = observation['observed_hands'][player_offset]
+#         player_hints = observation['card_knowledge'][player_offset]
+#         for card, hint in zip(player_hand, player_hints):
+#           affected_colors = 0
+#           affected_ranks = 0
+#           for other_card in player_hand:
+#             if card['color'] == other_card['color']:
+#               affected_colors+=1
+#             if card['rank']  == other_card['rank']:
+#               affected_ranks+=1
+#           if affected_colors > max_affected:
+#             max_affected = affected_colors
+#             best_action = {'action_type':'REVEAL_COLOR','color':card['color'],'target_offset':player_offset}
+#           if affected_ranks > max_affected:
+#             max_affected = affected_ranks
+#             best_action = {'action_type':'REVEAL_RANK','rank':card['rank'],'target_offset':player_offset}
+#     return None
 
 
 
