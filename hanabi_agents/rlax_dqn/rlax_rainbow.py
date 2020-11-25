@@ -146,7 +146,7 @@ class DQNPolicy:
         q_vals = jnp.where(lms, q_vals, -jnp.inf)
 
         # compute actions
-        return rlax.greedy().sample(key, q_vals), logits
+        return rlax.greedy().sample(key, q_vals)
 
 class DQNLearning:
     @staticmethod
