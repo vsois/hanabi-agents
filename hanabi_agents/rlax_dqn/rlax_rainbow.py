@@ -319,6 +319,11 @@ class DQNAgent:
             return onp.array(self.reward_shaper.shape(observations[0], moves))
         return 0
 
+    def get_shaper_params(self):
+        if self.reward_shaper is not None:
+            return self.reward_shaper.get_params()
+        return 0
+
     def update(self):
         """Make one training step.
         """

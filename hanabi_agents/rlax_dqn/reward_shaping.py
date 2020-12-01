@@ -88,7 +88,6 @@ class RewardShaper:
 
         return 0
     
-        
-        
-            
-            
+
+    def get_params(self):
+        return (self.params.w_play_probability, self.params.penalty_last_of_kind)
