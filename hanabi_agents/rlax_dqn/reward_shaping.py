@@ -39,29 +39,30 @@ class RewardShaper:
             return self._hint_shape(observation, move)
             
     def _discard_shape(self, observation, move):
+        return 0
 
-        discard_pile = observation.discard_pile
-        card_index = move.card_index
-        discarded_card = observation.card_to_discard(card_index)
-        
-        if discarded_card.rank == self.num_ranks -1:
-            return self.params.penalty_last_of_kind
-        elif len(discard_pile) == 0:
-            return 0
-        elif discarded_card.rank > 0:
-            for elem in discard_pile:
-                if discarded_card.rank == elem.rank & discarded_card.color == elem.color:
-                    return self.params.penalty_last_of_kind
-            return 0
-        else:
-            counter = 0
-            for elem in discard_pile:
-                if elem.rank == 0 & elem.color == discarded_card.color:
-                    counter += 1
-            if counter == 2:
-                return self.params.penalty_last_of_kind
-            else:
-                return 0
+#         discard_pile = observation.discard_pile
+#         card_index = move.card_index
+#         discarded_card = observation.card_to_discard(card_index)
+#         
+#         if discarded_card.rank == self.num_ranks -1:
+#             return self.params.penalty_last_of_kind
+#         elif len(discard_pile) == 0:
+#             return 0
+#         elif discarded_card.rank > 0:
+#             for elem in discard_pile:
+#                 if discarded_card.rank == elem.rank & discarded_card.color == elem.color:
+#                     return self.params.penalty_last_of_kind
+#             return 0
+#         else:
+#             counter = 0
+#             for elem in discard_pile:
+#                 if elem.rank == 0 & elem.color == discarded_card.color:
+#                     counter += 1
+#             if counter == 2:
+#                 return self.params.penalty_last_of_kind
+#             else:
+#                 return 0
     
     def _hint_shape(self, observation, move):
         return 0
