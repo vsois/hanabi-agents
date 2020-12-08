@@ -15,8 +15,21 @@ class RewardShaper:
                  params: RewardShapingParams = RewardShapingParams()):
         
         self.params = params
-        self.num_ranks = None
         self.unshaped = (0, ShapingType.NONE)
+        
+        # 
+        self.num_ranks = None
+        self._performance = 0
+        self._risk_penalty = self.params.w_play_probability
+    
+    @property
+    def performance(self):
+        return self._performance
+    
+    @performance.setter
+    def performance(self, performance):
+        self._performance = performance
+        self._risk_penalty = self.params.w_play_probability + self.params.m_play_probability * self._performance
 
     def shape(self, observations, moves):
         
@@ -25,6 +38,7 @@ class RewardShaper:
         if self.num_ranks == None:
             for obs in observations:
                 self.num_ranks = obs.parent_game.num_ranks
+                
 
         shaped_rewards = [self._calculate(obs, move)for obs, move in zip(observations, moves)]
         return zip(*shaped_rewards)
@@ -81,6 +95,6 @@ class RewardShaper:
             return self.unshaped
         
         if prob < self.params.min_play_probability:
-            return (self.params.w_play_probability, ShapingType.RISKY)
+            return (self._risk_penalty, ShapingType.RISKY)
 
         return self.unshaped
