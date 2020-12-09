@@ -100,4 +100,4 @@ class RewardShaper:
         if prob < self.params.min_play_probability:
             return (self._play_penalty, ShapingType.RISKY)
 
-        return (self._play_reward, ShapingType.RISKY)
+        return (self._play_reward, ShapingType.CONSERVATIVE)
