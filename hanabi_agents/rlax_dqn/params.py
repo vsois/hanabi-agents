@@ -26,6 +26,9 @@ class RewardShapingParams(NamedTuple):
     
     # conservative agent
     min_play_probability: float = 0.8
-    w_play_probability: float = 0
-    m_play_probability: float = 0
+    w_play_penalty: float = 0
+    m_play_penalty: float = 0
+    w_play_reward: float = 0
+    m_play_reward: float = 0
+    
     penalty_last_of_kind: float = 0

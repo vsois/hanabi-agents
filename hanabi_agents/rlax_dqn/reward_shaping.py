@@ -7,6 +7,7 @@ class ShapingType:
     NONE=0
     RISKY=1
     DISCARD_LAST_OF_KIND=2
+    CONSERVATIVE=3
 
 # reward shaping class
 class RewardShaper:
@@ -20,7 +21,8 @@ class RewardShaper:
         # 
         self.num_ranks = None
         self._performance = 0
-        self._risk_penalty = self.params.w_play_probability
+        self._play_penalty = self.params.w_play_penalty
+        self._play_reward = self.params.w_play_reward
     
     @property
     def performance(self):
@@ -29,7 +31,8 @@ class RewardShaper:
     @performance.setter
     def performance(self, performance):
         self._performance = performance
-        self._risk_penalty = self.params.w_play_probability + self.params.m_play_probability * self._performance
+        self._play_penalty = self.params.w_play_penalty + self.params.m_play_penalty * self._performance
+        self._play_reward = self.params.w_play_reward + self.params.m_play_reward * self._performance
 
     def shape(self, observations, moves):
         
@@ -95,6 +98,6 @@ class RewardShaper:
             return self.unshaped
         
         if prob < self.params.min_play_probability:
-            return (self._risk_penalty, ShapingType.RISKY)
+            return (self._play_penalty, ShapingType.RISKY)
 
-        return self.unshaped
+        return (self._play_reward, ShapingType.RISKY)
