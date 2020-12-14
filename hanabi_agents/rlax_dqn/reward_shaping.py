@@ -2,12 +2,7 @@
 from .params import RewardShapingParams
 import numpy as np
 from hanabi_learning_environment import pyhanabi_pybind as pyhanabi
-
-class ShapingType:
-    NONE=0
-    RISKY=1
-    DISCARD_LAST_OF_KIND=2
-    CONSERVATIVE=3
+from collections import Counter
 
 # reward shaping class
 class RewardShaper:
@@ -16,88 +11,44 @@ class RewardShaper:
                  params: RewardShapingParams = RewardShapingParams()):
         
         self.params = params
-        self.unshaped = (0, ShapingType.NONE)
-        
-        # 
-        self.num_ranks = None
-        self._performance = 0
-        self._play_penalty = self.params.w_play_penalty
-        self._play_reward = self.params.w_play_reward
+
+    def shape(self, obs1, obs2):
+        [self._calculate_difference(o1, o2) for o1, o2 in zip(obs1, obs2)]
+        return [self._calculate_difference(o1, o2) for o1, o2 in zip(obs1, obs2)]
     
-    @property
-    def performance(self):
-        return self._performance
+    def level(self, obs):
+        return [self._calculate_level(o) for o in obs]
     
-    @performance.setter
-    def performance(self, performance):
-        self._performance = performance
-        self._play_penalty = self.params.w_play_penalty + self.params.m_play_penalty * self._performance
-        self._play_reward = self.params.w_play_reward + self.params.m_play_reward * self._performance
-
-    def shape(self, observations, moves):
+    def _calculate_difference(self, obs1, obs2):
+        return self._calculate_level(obs2) - self._calculate_level(obs1)
+    
+    def _calculate_level(self, obs):
         
-        assert len(observations) == len(moves)
-
-        if self.num_ranks == None:
-            for obs in observations:
-                self.num_ranks = obs.parent_game.num_ranks
-                
-
-        shaped_rewards = [self._calculate(obs, move)for obs, move in zip(observations, moves)]
-        return zip(*shaped_rewards)
-                    
-    def _calculate(self, observation, move):
-                
-        if move.move_type == pyhanabi.HanabiMove.Type.kPlay:
-            return self._play_shape(observation, move)
-        if move.move_type == pyhanabi.HanabiMove.Type.kDiscard:
-            return self._discard_shape(observation, move)
-        if move.move_type in [pyhanabi.HanabiMove.Type.kRevealColor,
-                              pyhanabi.HanabiMove.Type.kRevealRank]:
-            return self._hint_shape(observation, move)
-        else:
-            return self.unshaped
+        lt = obs.life_tokens
+        it = obs.information_tokens
+        fw = np.sum(obs.fireworks)
+        
+        max = obs.parent_game.max_score
+        max_rank = obs.parent_game.num_ranks
+        num_cards_per_rank = [obs.parent_game.number_card_instances(0,r) for r in range(obs.parent_game.num_ranks)]
+        
+        fireworks = obs.fireworks
+        discard_counter = Counter(obs.discard_pile)
+        
+        for color, rank in enumerate(fireworks):
             
-    def _discard_shape(self, observation, move):
-
-        discard_pile = observation.discard_pile
-        card_index = move.card_index
-        discarded_card = observation.card_to_discard(card_index)
-         
-        if discarded_card.rank == self.num_ranks -1:
-            return (self.params.penalty_last_of_kind, ShapingType.DISCARD_LAST_OF_KIND)
+            for r in range(rank, max_rank):
+                card = pyhanabi.HanabiCard(color, r)
+                
+                if discard_counter[card] == num_cards_per_rank[r]:
+                    max -= (max_rank-r)
+                    break
+                     
+        return lt * self.params.w_life_tokens + \
+            it * self.params.w_info_tokens + \
+            max * self.params.w_max_score + \
+            fw * self.params.w_fireworks
+            
         
-        elif len(discard_pile) == 0:
-            return self.unshaped
         
-        elif discarded_card.rank > 0:
-            for elem in discard_pile:
-                if discarded_card.rank == elem.rank & discarded_card.color == elem.color:
-                    return (self.params.penalty_last_of_kind, ShapingType.DISCARD_LAST_OF_KIND)
-            return self.unshaped
-        
-        else:
-            counter = 0
-            for elem in discard_pile:
-                if elem.rank == 0 & elem.color == discarded_card.color:
-                    counter += 1
-            if counter == 2:
-                return (self.params.penalty_last_of_kind, ShapingType.DISCARD_LAST_OF_KIND)
-            else:
-                return self.unshaped
-    
-    def _hint_shape(self, observation, move):
-        return self.unshaped
-    
-    def _play_shape(self, observation, move):
-        
-        # the move may be illegal, eg. playing a card that is not available in hand
-        try:
-            prob = observation.playable_percent()[move.card_index]
-        except IndexError:
-            return self.unshaped
-        
-        if prob < self.params.min_play_probability:
-            return (self._play_penalty, ShapingType.RISKY)
-
-        return (self._play_reward, ShapingType.CONSERVATIVE)
+            

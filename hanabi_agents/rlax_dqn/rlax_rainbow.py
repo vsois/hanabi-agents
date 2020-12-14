@@ -313,13 +313,19 @@ class DQNAgent:
             legal_actions_t,
             term_t)
         
-    def shape_rewards(self, observations, moves):
+    def shape_rewards(self, obs1, obs2):
         
         if self.reward_shaper is not None:
-            shaped_rewards, shape_type = self.reward_shaper.shape(observations[0], 
-                                                                  moves)
-            return onp.array(shaped_rewards), onp.array(shape_type)
-        return (0, 0)
+            shaped_rewards = self.reward_shaper.shape(obs1[0], obs2[0])
+            return onp.array(shaped_rewards)
+        return 0
+    
+    def shape_level(self, obs):
+        
+        if self.reward_shaper is not None:
+            level = self.reward_shaper.level(obs[0])
+            return onp.array(level)
+        return 0        
 
     def update(self):
         """Make one training step.
