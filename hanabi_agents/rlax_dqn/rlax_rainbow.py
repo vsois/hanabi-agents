@@ -317,7 +317,8 @@ class DQNAgent:
         
         if self.reward_shaper is not None:
             shaped_rewards, shape_type = self.reward_shaper.shape(observations[0], 
-                                                                  moves)
+                                                                  moves,
+                                                                  self.train_step)
             return onp.array(shaped_rewards), onp.array(shape_type)
         return (0, 0)
 
