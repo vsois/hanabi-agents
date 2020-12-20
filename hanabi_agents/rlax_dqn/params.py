@@ -28,3 +28,4 @@ class RewardShapingParams(NamedTuple):
     w_info_tokens: float = 0
     w_max_score: float = 0
     w_fireworks: float = 0
+    w_card_knowledge: float = 0

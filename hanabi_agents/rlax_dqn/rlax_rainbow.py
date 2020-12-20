@@ -318,13 +318,13 @@ class DQNAgent:
         if self.reward_shaper is not None:
             shaped_rewards = self.reward_shaper.shape(obs1[0], obs2[0])
             return onp.array(shaped_rewards)
-        return 0
+        return 0, {}
     
     def shape_level(self, obs):
         
         if self.reward_shaper is not None:
-            level = self.reward_shaper.level(obs[0])
-            return onp.array(level)
+            level, info = self.reward_shaper.level(obs[0])
+            return onp.array(level), onp.array(info)
         return 0        
 
     def update(self):
