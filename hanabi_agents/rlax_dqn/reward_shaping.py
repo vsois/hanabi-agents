@@ -3,7 +3,6 @@ from .params import RewardShapingParams
 import numpy as np
 from hanabi_learning_environment import pyhanabi_pybind as pyhanabi
 from collections import Counter
-from timeit import timeit
 
 class ShapingType:
     NONE=0
@@ -60,11 +59,6 @@ class RewardShaper:
         if move.move_type == pyhanabi.HanabiMove.Type.kPlay:
             return self._play_shape(observation, move, step)
         if move.move_type == pyhanabi.HanabiMove.Type.kDiscard:
-            t1 = timeit(lambda: self._discard_shape(observation, move, step),
-                        number=1000)
-            t2 = timeit(lambda: self._discard_shape_2(observation, move, step),
-                        number=1000)
-            print(t1, t2)
             return self._discard_shape(observation, move, step)
         if move.move_type in [pyhanabi.HanabiMove.Type.kRevealColor,
                               pyhanabi.HanabiMove.Type.kRevealRank]:
