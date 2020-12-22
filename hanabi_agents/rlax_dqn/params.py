@@ -25,6 +25,11 @@ class RlaxRainbowParams(NamedTuple):
 class RewardShapingParams(NamedTuple):
     
     # conservative agent
+    shaper: bool = True
     min_play_probability: float = 0.8
     w_play_probability: float = 0
     penalty_last_of_kind: float = 0
+
+@gin.configurable
+class AgentType(NamedTuple):
+    type: str = 'rainbow'
