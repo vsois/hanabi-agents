@@ -37,3 +37,15 @@ piers_rules = [
     Ruleset.tell_randomly,
     Ruleset.discard_randomly
 ]
+
+VanDenBergh = [
+    Ruleset.play_probably_safe_factory(0.6,True),
+    Ruleset.play_safe_card,
+    Ruleset.discard_probably_useless_factory(0.99),
+    Ruleset.tell_anyone_useful_card,
+    # Ruleset.tell_anyone_useless_card,
+    # Ruleset.tell_most_information,
+    Ruleset.discard_probably_useless_factory(0)
+]
+
+
