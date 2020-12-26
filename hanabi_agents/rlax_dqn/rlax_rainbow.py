@@ -11,7 +11,8 @@ import numpy as onp
 
 import haiku as hk
 import jax
-import optax
+#import optax
+from jax.experimental import optix
 import jax.numpy as jnp
 import rlax
 import chex
@@ -216,7 +217,8 @@ class DQNLearning:
             prios)
 
         updates, opt_state_t = optimizer.update(grads, opt_state)
-        online_params_t = optax.apply_updates(online_params, updates)
+        #online_params_t = optax.apply_updates(online_params, updates)
+        online_params_t = optix.apply_updates(online_params, updates)
         return online_params_t, opt_state_t, new_prios
 
 
@@ -260,6 +262,7 @@ class DQNAgent:
                               (action_spec.num_values, 1))
 
         # Build and initialize optimizer.
+        #self.optimizer = optax.adam(params.learning_rate, eps=3.125e-5)
         self.optimizer = optax.adam(params.learning_rate, eps=3.125e-5)
         self.opt_state = self.optimizer.init(self.online_params)
         self.train_step = 0
