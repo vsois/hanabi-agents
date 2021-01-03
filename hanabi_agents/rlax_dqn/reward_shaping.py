@@ -67,6 +67,9 @@ class RewardShaper:
             return self.unshaped
             
     def _discard_shape(self, observation, move, step):
+        
+        if self.params.penalty_last_of_kind==0:
+            return self.unshaped
 
         discard_pile = observation.discard_pile
         card_index = move.card_index
@@ -99,7 +102,6 @@ class RewardShaper:
     
     def _play_shape(self, observation, move, step):
         
-        # the move may be illegal, eg. playing a card that is not available in hand
         try:
             prob = observation.playable_percent()[move.card_index]
         except IndexError:
