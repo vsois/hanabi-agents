@@ -11,8 +11,7 @@ import numpy as onp
 
 import haiku as hk
 import jax
-#import optax
-from jax.experimental import optix
+import optax
 import jax.numpy as jnp
 import rlax
 import chex
