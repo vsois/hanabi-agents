@@ -113,3 +113,6 @@ class RewardShaper:
 
         reward = self.params.w_play_reward(step) + self._m_play_reward
         return (reward, ShapingType.CONSERVATIVE)
+    
+    def __repr__(self):
+        return f"<rlax_dqn.RewardShaper(params={self.params})>"
