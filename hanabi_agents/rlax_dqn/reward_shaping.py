@@ -47,12 +47,12 @@ class RewardShaper:
                     break
         
         # calculate card knowledge index        
-        playability_avg = obs.average_playability()
+        # playability_avg = obs.average_playability()
         # calculate common playability of players cards
-        playability_common = np.array(obs.common_playability())
+        # playability_common = np.array(obs.common_playability())
         # card knowledge
-        card_knowledge = abs(playability_avg - playability_common)
-        cki = np.sum(card_knowledge)
+        # card_knowledge = abs(playability_avg - playability_common)
+        cki = 0#np.sum(card_knowledge)
         
         level = lt * self.params.w_life_tokens + \
             it * self.params.w_info_tokens + \
