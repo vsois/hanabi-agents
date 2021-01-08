@@ -39,6 +39,9 @@ class RewardShaper:
 
         #old and slower
         #return zip(*[self._calculate_level(o) for o in obs])
+        
+    def __repr__(self):
+        return f"<rlax_dqn.RewardShaper(params={self.params})>"
     
     # old functions
 #     def _calculate_difference(self, obs1, obs2):
