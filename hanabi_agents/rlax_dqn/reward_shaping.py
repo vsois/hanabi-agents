@@ -20,11 +20,11 @@ class RewardShaper:
     
     def level(self, obs):
         
-        it = np.array(obs.information_tokens, dtype='f4')
-        lt = np.array(obs.life_tokens, dtype='f4')
-        fw = np.array(obs.score, dtype='f4')
-        max = np.array(obs.max_score, dtype='f4')
-        cki = np.array(obs.card_knowledge_indicator, dtype='f4')
+        it = np.array(obs.information_tokens, dtype='f4').reshape(-1)
+        lt = np.array(obs.life_tokens, dtype='f4').reshape(-1)
+        fw = np.array(obs.score, dtype='f4').reshape(-1)
+        max = np.array(obs.max_score, dtype='f4').reshape(-1)
+        cki = np.array(obs.card_knowledge_indicator, dtype='f4').reshape(-1)
         
         level = lt * self.params.w_life_tokens + \
             it * self.params.w_info_tokens + \
