@@ -370,7 +370,8 @@ class DQNAgent:
         return f"<rlax_dqn.DQNAgent(params={self.params})>"
 
     def save_weights(self, path, fname_part):
-        """Save online and target network weights to the specified path"""
+        """Save online and target network weights to the specified path
+        added: save optimizer state"""
 
         # TODO save weights using something other than pickle (e.g. numpy + protobuf)
         #  flat_params, tree_def = jax.tree_util.tree_flatten(self.online_params)
@@ -383,11 +384,18 @@ class DQNAgent:
             pickle.dump(self.online_params, of)
         with open(join_path(path, "rlax_rainbow_" + fname_part + "_target.pkl"), 'wb') as of:
             pickle.dump(self.trg_params, of)
+        with open(join_path(path, "rlax_rainbow_" + fname_part + "_opt_state.pkl"), 'wb') as of:
+            pickle.dump(jax.tree_util.tree_map(onp.array, self.opt_state), of)
 
-    def restore_weights(self, online_weights_file, trg_weights_file):
-        """Restore online and target network weights from the specified files"""
+    def restore_weights(self, online_weights_file, trg_weights_file, opt_state_file=None):
+        """Restore online and target network weights from the specified files
+        added: load optimizer state if file name given"""
 
         with open(online_weights_file, 'rb') as iwf:
             self.online_params = pickle.load(iwf)
         with open(trg_weights_file, 'rb') as iwf:
             self.trg_params = pickle.load(iwf)
+        if opt_state_file is not None:
+            with open(opt_state_file, 'rb') as iwf:
+                self.opt_state = pickle.load(iwf)
+            self.train_step = onp.asscalar(self.opt_state[0].count)
