@@ -328,7 +328,7 @@ class DQNAgent:
             except ValueError:
                 level, info = [], []
             return onp.array(level), onp.array(info)
-        return 0, [{}]        
+        return onp.array(0).reshape(-1), [{}]        
 
     def update(self):
         """Make one training step.
