@@ -21,8 +21,6 @@ from .priority_buffer import PriorityBuffer
 from .noisy_mlp import NoisyMLP
 from .params import RlaxRainbowParams
 from .vectorized_stacker import VectorizedObservationStacker
-from jedi._compatibility import pickle_dump
-
 
 DiscreteDistribution = collections.namedtuple(
     "DiscreteDistribution", ["sample", "probs", "logprob", "entropy"])
