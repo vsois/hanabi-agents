@@ -25,20 +25,18 @@ class RewardShaper:
         fw = np.array(obs.score, dtype='f4').reshape(-1)
         max = np.array(obs.max_score, dtype='f4').reshape(-1)
         cki = np.array(obs.card_knowledge_indicator, dtype='f4').reshape(-1)
+        pi = np.array(obs.playability_indicator, dtype='f4').reshape(-1)
         
         level = lt * self.params.w_life_tokens + \
             it * self.params.w_info_tokens + \
             max * self.params.w_max_score + \
             fw * self.params.w_fireworks + \
-            cki * self.params.w_card_knowledge
+            (cki+pi) * self.params.w_card_knowledge 
                   
         # convert level indicators into list of dictionaries
         info = pd.DataFrame(zip(it, lt, fw, max, cki), 
                             columns = ['IT', 'LT', 'FW', 'MS', 'CKI'])
         return level, info.to_dict('records')
-
-        #old and slower
-        #return zip(*[self._calculate_level(o) for o in obs])
         
     def __repr__(self):
         return f"<rlax_dqn.RewardShaper(params={self.params})>"
