@@ -74,7 +74,7 @@ class RewardShaper:
         discard_pile = observation.discard_pile
         card_index = move.card_index
         discarded_card = observation.card_to_discard(card_index)
-            
+
         if discarded_card.rank == self.num_ranks -1:
             return (self.params.penalty_last_of_kind, ShapingType.DISCARD_LAST_OF_KIND)
         
@@ -96,7 +96,7 @@ class RewardShaper:
                 return (self.params.penalty_last_of_kind, ShapingType.DISCARD_LAST_OF_KIND)
             else:
                 return self.unshaped
-            
+
     def _hint_shape(self, observation, move, step):
         return self.unshaped
     
@@ -108,6 +108,7 @@ class RewardShaper:
             return self.unshaped
         
         if prob < self.params.min_play_probability:
+
             penalty = self.params.w_play_penalty(step) + self._m_play_penalty
             return (penalty, ShapingType.RISKY)
 
@@ -116,3 +117,4 @@ class RewardShaper:
     
     def __repr__(self):
         return f"<rlax_dqn.RewardShaper(params={self.params})>"
+

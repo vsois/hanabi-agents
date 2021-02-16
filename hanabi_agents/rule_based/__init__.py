@@ -5,3 +5,4 @@ https://github.com/rocanaan/hanabi-ad-hoc-learning/tree/AIIDE/
 """
 from .rule_based import RulebasedAgent
 from .ruleset import Ruleset
+from .params import RulebasedParams
