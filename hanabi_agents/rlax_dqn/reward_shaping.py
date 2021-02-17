@@ -30,7 +30,9 @@ class RewardShaper:
             it * self.params.w_info_tokens + \
             max * self.params.w_max_score + \
             fw * self.params.w_fireworks + \
-            cki * self.params.w_card_knowledge
+            cki * self.params.w_card_knowledge + \
+            (lt > 0).astype('int16') * self.params.w_alive
+            
                   
         # convert level indicators into list of dictionaries
         info = pd.DataFrame(zip(it, lt, fw, max, cki), 
